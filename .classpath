@@ -10,5 +10,6 @@
 			<attribute name="javadoc_location" value="jar:file:/D:/Eclipseworkspace/GetShop/libs/BaiduMap_AndroidSDK_v2.2.0_Docs.zip!/BaiduMap_AndroidSDK_v2.2.0_Docs"/>
 		</attributes>
 	</classpathentry>
+	<classpathentry kind="lib" path="libs/locSDK_4.0.jar"/>
 	<classpathentry kind="output" path="bin/classes"/>
 </classpath>
