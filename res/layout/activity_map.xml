@@ -16,19 +16,11 @@
         android:text="@string/info"
         android:textSize="18sp" />
 
-    <Button
-        android:id="@+id/btn_search"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignRight="@+id/bmapView"
-        android:layout_alignTop="@+id/tv_info"
-        android:text="@string/search" />
-
     <com.baidu.mapapi.map.MapView
         android:id="@+id/bmapView"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
-        android:layout_below="@id/btn_search"
+        android:layout_below="@id/tv_info"
         android:clickable="true" />
 
 </RelativeLayout>
