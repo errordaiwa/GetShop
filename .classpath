@@ -3,14 +3,14 @@
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="src" path="gen"/>
 	<classpathentry kind="con" path="com.android.ide.eclipse.adt.ANDROID_FRAMEWORK"/>
-	<classpathentry kind="con" path="com.android.ide.eclipse.adt.DEPENDENCIES"/>
-	<classpathentry exported="true" kind="lib" path="libs/baidumapapi_v2_2_0.jar">
+	<classpathentry exported="true" kind="con" path="com.android.ide.eclipse.adt.DEPENDENCIES"/>
+	<classpathentry kind="lib" path="libs/baidumapapi_v2_2_0.jar">
 		<attributes>
 			<attribute name="javadoc_location" value="jar:file:/D:/Eclipseworkspace/GetShop/libs/BaiduMap_AndroidSDK_v2.2.0_Docs.zip!/BaiduMap_AndroidSDK_v2.2.0_Docs"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry exported="true" kind="lib" path="libs/locSDK_4.0.jar"/>
-	<classpathentry exported="true" kind="lib" path="D:/Tools/adt-bundle-windows-x86_64-20130729/adt-bundle-windows-x86_64-20130729/sdk/extras/android/support/v4/android-support-v4.jar" sourcepath="D:/Tools/adt-bundle-windows-x86_64-20130729/adt-bundle-windows-x86_64-20130729/sdk/extras/android/support/v4/src.zip"/>
-	<classpathentry kind="con" path="com.android.ide.eclipse.adt.LIBRARIES"/>
+	<classpathentry kind="lib" path="libs/locSDK_4.0.jar"/>
+	<classpathentry kind="lib" path="D:/Tools/adt-bundle-windows-x86_64-20130729/adt-bundle-windows-x86_64-20130729/sdk/extras/android/support/v4/android-support-v4.jar" sourcepath="D:/Tools/adt-bundle-windows-x86_64-20130729/adt-bundle-windows-x86_64-20130729/sdk/extras/android/support/v4/src.zip"/>
+	<classpathentry exported="true" kind="con" path="com.android.ide.eclipse.adt.LIBRARIES"/>
 	<classpathentry kind="output" path="bin/classes"/>
 </classpath>

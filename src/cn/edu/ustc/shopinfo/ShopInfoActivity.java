@@ -14,6 +14,7 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.app.NavUtils;
 import android.support.v4.view.ViewPager;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
@@ -28,6 +29,7 @@ public class ShopInfoActivity extends FragmentActivity {
 
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		Log.d(TAG, "onCreate!");
 		shopID = getIntent().getStringExtra(SHOP_ID);
 		initViews();
 	}
@@ -100,6 +102,37 @@ public class ShopInfoActivity extends FragmentActivity {
 
 	public String getShopID() {
 		return shopID;
+	}
+	
+	@Override
+	protected void onStart(){
+		Log.d(TAG, "onStart!");
+		super.onStart();
+	}
+
+
+	@Override
+	protected void onResume() {
+		Log.d(TAG, "onResume!");
+		super.onResume();
+	}
+	
+	@Override
+	protected void onPause() {
+		Log.d(TAG, "onPause!");
+		super.onPause();
+	}
+	
+	@Override
+	protected void onStop(){
+		Log.d(TAG, "onStop!");
+		super.onStop();
+	}
+
+	@Override
+	protected void onDestroy() {
+		Log.d(TAG, "onDestroy!");
+		super.onDestroy();
 	}
 
 	class CollectionPagerAdapter extends FragmentStatePagerAdapter {

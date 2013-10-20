@@ -71,14 +71,12 @@ public class GetShopCommand extends Command {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		// xmlContent = locationX + " " + locationY;
 
 	}
 
 	@Override
 	public void onExcute() {
-		xmlReturn = new HttpDownload().download(HttpDownload.SERVER_IP,
-				HttpDownload.SERVER_PORT, xmlRequest);
+		xmlReturn = new HttpDownload().download(xmlRequest);
 	}
 
 	@Override

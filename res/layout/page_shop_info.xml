@@ -3,7 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent" >
     
-    <LinearLayout
+<!--     <LinearLayout
         android:id="@+id/ll_movie_info"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -140,7 +140,7 @@
                 android:textColor="@android:color/black"  />
         </LinearLayout>
         
-    </LinearLayout>
+    </LinearLayout> -->
     
 
 </RelativeLayout>

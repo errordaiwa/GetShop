@@ -3,8 +3,10 @@ package cn.edu.ustc.command;
 import android.graphics.Bitmap;
 
 public class ItemData {
-	private String itemID = null;
-	private Bitmap itemImage = null;
+	private String itemID;
+	private Bitmap itemImage;
+	private long time;
+	private int imageLength;
 
 	public String getItemID() {
 		return itemID;
@@ -20,5 +22,21 @@ public class ItemData {
 
 	public void setItemImage(Bitmap itemImage) {
 		this.itemImage = itemImage;
+	}
+
+	public long getTime() {
+		return time;
+	}
+
+	public void setTime(long time) {
+		this.time = time;
+	}
+
+	public int getImageLength() {
+		return imageLength;
+	}
+
+	public void setImageLength(int imageLength) {
+		this.imageLength = imageLength;
 	}
 }

@@ -164,6 +164,7 @@ public class MapActivity extends Activity {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		Log.d(TAG, "onCreate!");
 		initView();
 	}
 
@@ -247,6 +248,7 @@ public class MapActivity extends Activity {
 				Intent intent = new Intent(MapActivity.this, ShopInfoActivity.class);
 				intent.putExtra(SHOP_ID, shopData.getShopID());
 				MapActivity.this.startActivity(intent);
+				break;
 			}
 				
 		}
@@ -305,9 +307,43 @@ public class MapActivity extends Activity {
 		getMenuInflater().inflate(R.menu.map, menu);
 		return true;
 	}
+	
+	@Override
+	protected void onStart(){
+		Log.d(TAG, "onStart!");
+		super.onStart();
+	}
+
+
+	@Override
+	protected void onResume() {
+		Log.d(TAG, "onResume!");
+		mMapView.onResume();
+		if (mBMapMan != null) {
+			mBMapMan.start();
+		}
+		super.onResume();
+	}
+	
+	@Override
+	protected void onPause() {
+		Log.d(TAG, "onPause!");
+		mMapView.onPause();
+		if (mBMapMan != null) {
+			mBMapMan.stop();
+		}
+		super.onPause();
+	}
+	
+	@Override
+	protected void onStop(){
+		Log.d(TAG, "onStop!");
+		super.onStop();
+	}
 
 	@Override
 	protected void onDestroy() {
+		Log.d(TAG, "onDestroy!");
 		mMapView.destroy();
 		if (mBMapMan != null) {
 			mBMapMan.destroy();
@@ -316,23 +352,6 @@ public class MapActivity extends Activity {
 		super.onDestroy();
 	}
 
-	@Override
-	protected void onPause() {
-		mMapView.onPause();
-		if (mBMapMan != null) {
-			mBMapMan.stop();
-		}
-		super.onPause();
-	}
-
-	@Override
-	protected void onResume() {
-		mMapView.onResume();
-		if (mBMapMan != null) {
-			mBMapMan.start();
-		}
-		super.onResume();
-	}
 
 	class LocationListener implements BDLocationListener {
 		private Handler uiHandler;
