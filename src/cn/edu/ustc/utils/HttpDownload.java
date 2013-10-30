@@ -1,24 +1,14 @@
 package cn.edu.ustc.utils;
 
 import java.io.ByteArrayOutputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.net.MalformedURLException;
 import java.net.Socket;
 import java.net.URL;
-import java.net.URLEncoder;
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 
 import android.util.Log;
 
@@ -81,6 +71,8 @@ public class HttpDownload {
 			URL url = new URL(SERVER_ADDR);
 			HttpURLConnection urlConn = (HttpURLConnection) url
 					.openConnection();
+			urlConn.setConnectTimeout(5000);
+			urlConn.setReadTimeout(5000);
 			urlConn.setDoOutput(true);
 			urlConn.setDoInput(true);
 			urlConn.setRequestMethod("POST");
@@ -93,10 +85,20 @@ public class HttpDownload {
 			out.write(request.getBytes());
 			out.flush();
 			out.close();
-			String response = urlConn.getResponseMessage();
-			Log.i(TAG, response);
+			int result = urlConn.getResponseCode();
+			Log.i(TAG, "Response Code is " + result);
+			InputStream in = urlConn.getInputStream();
+			ByteArrayOutputStream byteBuffer = new ByteArrayOutputStream();
+			byte[] temp = new byte[1];
+			int len = 0;
+			while (len >= 0) {
+				byteBuffer.write(temp);
+				len = in.read(temp);
+			}
+			String response = new String(byteBuffer.toByteArray());
+			String content = "<?xml" + response.split("<?xml",2)[1];
 			urlConn.disconnect();
-			return response;
+			return content;
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -104,5 +106,4 @@ public class HttpDownload {
 		}
 
 	}
-
 }

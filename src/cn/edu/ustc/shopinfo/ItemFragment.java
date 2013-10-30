@@ -21,20 +21,20 @@ import android.view.ViewGroup;
 import android.widget.LinearLayout;
 
 public class ItemFragment extends Fragment {
-	
-	private final long aWeek = 7L*24*60*60*1000;
+
+	private final long aWeek = 7L * 24 * 60 * 60 * 1000;
 	private String shopID;
-	
+
 	private ArrayList<ItemData> itemList = new ArrayList<ItemData>();
-	
+
 	private LinearLayout llImage;
 	protected static final int SHOW_ITEMS = 0;
-	
-	private Handler uiHandler = new Handler(){
+
+	private Handler uiHandler = new Handler() {
 		@Override
 		public void handleMessage(Message msg) {
 			switch (msg.what) {
-			case SHOW_ITEMS :
+			case SHOW_ITEMS:
 				showItems();
 				break;
 			default:
@@ -47,7 +47,7 @@ public class ItemFragment extends Fragment {
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		shopID = ((ShopInfoActivity)getActivity()).getShopID();
+		shopID = ((ShopInfoActivity) getActivity()).getShopData().getShopID();
 	}
 
 	@Override
@@ -61,18 +61,20 @@ public class ItemFragment extends Fragment {
 
 	private void getItems() {
 		long lastModifierTime = System.currentTimeMillis() - aWeek;
-		GetItemCommand cmd = new GetItemCommand(shopID, lastModifierTime, new CommandSink() {
-			
-			@Override
-			public void onCommandExcuted(int result, Command cmd, Object[]... args) {
-				itemList = ((GetItemCommand)cmd).getItemList();
-				Message msg = Message.obtain(uiHandler);
-				msg.what = SHOW_ITEMS;
-				msg.sendToTarget();
-			}
-		});
+		GetItemCommand cmd = new GetItemCommand(shopID, lastModifierTime, 20,
+				new CommandSink() {
+
+					@Override
+					public void onCommandExcuted(int result, Command cmd,
+							Object[]... args) {
+						itemList = ((GetItemCommand) cmd).getItemList();
+						Message msg = Message.obtain(uiHandler);
+						msg.what = SHOW_ITEMS;
+						msg.sendToTarget();
+					}
+				});
 		CommandPool.getInstance().add(cmd);
-		
+
 	}
 
 	protected void showItems() {
@@ -80,7 +82,6 @@ public class ItemFragment extends Fragment {
 			Bitmap image = item.getItemImage();
 			ItemView itemView = new ItemView(getActivity());
 			itemView.setImage(image);
-			itemView.setText("abc");
 			llImage.addView(itemView);
 		}
 	}

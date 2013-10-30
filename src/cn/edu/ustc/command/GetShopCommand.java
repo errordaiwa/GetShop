@@ -6,6 +6,7 @@ import java.io.FileInputStream;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
@@ -13,6 +14,7 @@ import org.xmlpull.v1.XmlSerializer;
 
 import com.baidu.platform.comapi.basestruct.GeoPoint;
 
+import cn.edu.ustc.data.ShopDataModel;
 import cn.edu.ustc.map.ShopData;
 import cn.edu.ustc.utils.HttpDownload;
 
@@ -25,18 +27,20 @@ public class GetShopCommand extends Command {
 
 	private CommandSink sink = null;
 	private String xmlRequest = null;
-	private double locationX = 0;
-	private double locationY = 0;
+
+	private double locationX;
+	private double locationY;
+	private double radius;
 
 	private String xmlReturn = null;
 
 	private String dataReturn = null;
 
-	private ArrayList<ShopData> shopList = new ArrayList<ShopData>();
-
-	public GetShopCommand(double locationX, double locationY, CommandSink sink) {
+	public GetShopCommand(double locationX, double locationY, double radius,
+			CommandSink sink) {
 		this.locationX = locationX;
 		this.locationY = locationY;
+		this.radius = radius;
 		this.sink = sink;
 	}
 
@@ -52,14 +56,15 @@ public class GetShopCommand extends Command {
 			xmlBuilder.text("get_shop");
 			xmlBuilder.endTag(null, "type");
 			xmlBuilder.startTag(null, "data");
-			xmlBuilder.startTag(null, "location");
 			xmlBuilder.startTag(null, "x");
 			xmlBuilder.text(Double.toString(locationX));
 			xmlBuilder.endTag(null, "x");
 			xmlBuilder.startTag(null, "y");
 			xmlBuilder.text(Double.toString(locationY));
 			xmlBuilder.endTag(null, "y");
-			xmlBuilder.endTag(null, "location");
+			xmlBuilder.startTag(null, "radius");
+			xmlBuilder.text(Double.toString(radius));
+			xmlBuilder.endTag(null, "radius");
 			xmlBuilder.endTag(null, "data");
 			xmlBuilder.endTag(null, "command");
 			xmlBuilder.endDocument();
@@ -81,15 +86,20 @@ public class GetShopCommand extends Command {
 
 	@Override
 	public void onParse() {
-		Log.i(TAG, "Return xml: " + xmlReturn);
+		if (xmlReturn == null){
+			sink.onCommandExcuted(0, this);
+			return;
+		}
 		try {
-			// ByteArrayInputStream inStream = new ByteArrayInputStream(
-			// xmlReturn.getBytes("UTF-8"));
-			FileInputStream inStream = new FileInputStream(
-					Environment.getExternalStorageDirectory() + "/shoplist.txt");
+			Log.i(TAG, "Return xml: " + xmlReturn);
+			ByteArrayInputStream inStream = new ByteArrayInputStream(
+					xmlReturn.getBytes("UTF-8"));
+			// FileInputStream inStream = new FileInputStream(
+			// Environment.getExternalStorageDirectory() + "/shoplist.txt");
 			XmlPullParser parser = Xml.newPullParser();
 			parser.setInput(inStream, "UTF-8");
 			int eventType = parser.getEventType();
+			ShopDataModel.getInstance().clearShop();
 			ShopData currentShop = null;
 			GeoPoint location = null;
 			while (eventType != XmlPullParser.END_DOCUMENT) {
@@ -125,7 +135,7 @@ public class GetShopCommand extends Command {
 				case XmlPullParser.END_TAG:
 					tagName = parser.getName();
 					if ("shop".equalsIgnoreCase(tagName)) {
-						shopList.add(currentShop);
+						ShopDataModel.getInstance().addShop(currentShop);
 					} else if ("location".equalsIgnoreCase(tagName)) {
 						currentShop.setLocation(location);
 					}
@@ -135,7 +145,6 @@ public class GetShopCommand extends Command {
 				}
 				eventType = parser.next();
 			}
-
 			sink.onCommandExcuted(1, this);
 		} catch (Exception e) {
 			Log.e(TAG, e.getMessage());
@@ -146,10 +155,6 @@ public class GetShopCommand extends Command {
 
 	public String getDataReturn() {
 		return dataReturn;
-	}
-
-	public ArrayList<ShopData> getShopList() {
-		return shopList;
 	}
 
 }

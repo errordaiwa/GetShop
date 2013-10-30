@@ -1,5 +1,6 @@
 package cn.edu.ustc.command;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
 import java.util.ArrayList;
@@ -11,6 +12,7 @@ import com.baidu.platform.comapi.basestruct.GeoPoint;
 
 import cn.edu.ustc.map.ShopData;
 import cn.edu.ustc.utils.HttpDownload;
+import cn.edu.ustc.utils.StringUtils;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -23,6 +25,7 @@ public class GetItemCommand extends Command {
 	
 	private String shopID;
 	private long lastModifierTime;
+	private int limit;
 	
 	private CommandSink sink;
 	
@@ -32,9 +35,12 @@ public class GetItemCommand extends Command {
 
 	private String xmlReturn;
 
-	public GetItemCommand(String shopID, long lastModifierTime, CommandSink sink) {
+
+
+	public GetItemCommand(String shopID, long lastModifierTime, int limit, CommandSink sink) {
 		this.shopID = shopID;
 		this.lastModifierTime = lastModifierTime;
+		this.limit = limit;
 		this.sink = sink;
 	}
 
@@ -50,12 +56,15 @@ public class GetItemCommand extends Command {
 			xmlBuilder.text("get_item");
 			xmlBuilder.endTag(null, "type");
 			xmlBuilder.startTag(null, "data");
+			xmlBuilder.startTag(null, "shopID");
+			xmlBuilder.text(shopID);
+			xmlBuilder.endTag(null, "shopID");
 			xmlBuilder.startTag(null, "lastModifierTime");
 			xmlBuilder.text(Long.toString(lastModifierTime));
 			xmlBuilder.endTag(null, "lastModifierTime");
-//			xmlBuilder.startTag(null, "limit");
-//			xmlBuilder.text(Integer.toString(limit));
-//			xmlBuilder.endTag(null, "limit");
+			xmlBuilder.startTag(null, "limit");
+			xmlBuilder.text(Integer.toString(limit));
+			xmlBuilder.endTag(null, "limit");
 			xmlBuilder.endTag(null, "data");
 			xmlBuilder.endTag(null, "command");
 			xmlBuilder.endDocument();
@@ -80,10 +89,10 @@ public class GetItemCommand extends Command {
 	public void onParse() {
 		Log.i(TAG, "Return xml: " + xmlReturn);
 		try {
-			// ByteArrayInputStream inStream = new ByteArrayInputStream(
-			// xmlReturn.getBytes("UTF-8"));
-			FileInputStream inStream = new FileInputStream(
-					Environment.getExternalStorageDirectory() + "/piclist.txt");
+			 ByteArrayInputStream inStream = new ByteArrayInputStream(
+			 xmlReturn.getBytes("UTF-8"));
+//			FileInputStream inStream = new FileInputStream(
+//					Environment.getExternalStorageDirectory() + "/piclist.txt");
 			XmlPullParser parser = Xml.newPullParser();
 			parser.setInput(inStream, "UTF-8");
 			int eventType = parser.getEventType();
@@ -101,7 +110,7 @@ public class GetItemCommand extends Command {
 					} else if ("time".equalsIgnoreCase(tagName)) {
 						currentItem.setTime(Long.parseLong(parser.nextText().trim()));
 					} else if ("data".equalsIgnoreCase(tagName)) {
-						byte[] imageBytes = parser.nextText().trim().getBytes();
+						byte[] imageBytes = StringUtils.hexStringToBytes(parser.nextText().trim());
 						Bitmap bitmap = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.length);
 						currentItem.setItemImage(bitmap);
 					} 
@@ -120,7 +129,7 @@ public class GetItemCommand extends Command {
 
 			sink.onCommandExcuted(1, this);
 		} catch (Exception e) {
-			Log.e(TAG, e.getMessage());                                                                                                                                                                                                                        
+			Log.e(TAG, "Error: " + e.getMessage());                                                                                                                                                                                                                        
 			sink.onCommandExcuted(0, this);
 		}
 

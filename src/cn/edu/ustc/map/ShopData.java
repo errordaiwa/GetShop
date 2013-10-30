@@ -1,8 +1,24 @@
 package cn.edu.ustc.map;
 
+import cn.edu.ustc.map.MapActivity.MyPoi;
+
 import com.baidu.platform.comapi.basestruct.GeoPoint;
 
 public class ShopData {
+	public ShopData() {
+
+	}
+
+	public ShopData(MyPoi poi) {
+		this.shopID = poi.uid;
+		this.shopName = poi.name;
+		this.location = poi.pt;
+		this.shopAddr = poi.address;
+		this.shopLabel = poi.label;
+		this.shopTel = poi.phoneNum;
+		this.shopIntro = poi.intro;
+	}
+
 	private String shopID;
 	private String shopName;
 	private String shopAddr;

@@ -12,13 +12,11 @@ import android.widget.TextView;
 public class ItemView extends FrameLayout {
 	private View mRootView;
 	ImageView ivItem;
-	TextView tvItem;
 
 	public ItemView(Context context) {
 		super(context);
 		mRootView = View.inflate(context, R.layout.item_view, this);
 		ivItem = (ImageView) mRootView.findViewById(R.id.iv_item);
-		tvItem = (TextView) mRootView.findViewById(R.id.tv_item);
 	}
 
 	public void setImage(int id) {
@@ -29,8 +27,5 @@ public class ItemView extends FrameLayout {
 		ivItem.setImageBitmap(image);
 	}
 
-	public void setText(String string) {
-		tvItem.setText(string);
-	}
 
 }

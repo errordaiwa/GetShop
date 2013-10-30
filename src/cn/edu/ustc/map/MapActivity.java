@@ -2,12 +2,17 @@ package cn.edu.ustc.map;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map.Entry;
+import java.util.Set;
 
 import cn.edu.ustc.R;
 import cn.edu.ustc.command.Command;
 import cn.edu.ustc.command.CommandPool;
 import cn.edu.ustc.command.CommandSink;
 import cn.edu.ustc.command.GetShopCommand;
+import cn.edu.ustc.data.ShopDataModel;
 import cn.edu.ustc.shopinfo.ShopInfoActivity;
 import static cn.edu.ustc.utils.Consts.*;
 
@@ -17,27 +22,14 @@ import com.baidu.location.LocationClient;
 import com.baidu.location.LocationClientOption;
 import com.baidu.mapapi.BMapManager;
 import com.baidu.mapapi.map.LocationData;
-import com.baidu.mapapi.map.MKEvent;
 import com.baidu.mapapi.map.MKMapTouchListener;
-import com.baidu.mapapi.map.MKMapViewListener;
 import com.baidu.mapapi.map.MapController;
-import com.baidu.mapapi.map.MapPoi;
 import com.baidu.mapapi.map.MapView;
 import com.baidu.mapapi.map.MyLocationOverlay;
 import com.baidu.mapapi.map.PoiOverlay;
 import com.baidu.mapapi.map.PopupClickListener;
 import com.baidu.mapapi.map.PopupOverlay;
-import com.baidu.mapapi.search.MKAddrInfo;
-import com.baidu.mapapi.search.MKBusLineResult;
-import com.baidu.mapapi.search.MKDrivingRouteResult;
 import com.baidu.mapapi.search.MKPoiInfo;
-import com.baidu.mapapi.search.MKPoiResult;
-import com.baidu.mapapi.search.MKSearch;
-import com.baidu.mapapi.search.MKSearchListener;
-import com.baidu.mapapi.search.MKShareUrlResult;
-import com.baidu.mapapi.search.MKSuggestionResult;
-import com.baidu.mapapi.search.MKTransitRouteResult;
-import com.baidu.mapapi.search.MKWalkingRouteResult;
 import com.baidu.platform.comapi.basestruct.GeoPoint;
 
 import android.os.Bundle;
@@ -49,9 +41,6 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.util.Log;
 import android.view.Menu;
-import android.view.View;
-import android.view.View.OnClickListener;
-import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -64,26 +53,24 @@ public class MapActivity extends Activity {
 	private BMapManager mBMapMan;
 
 	private MapView mMapView;
-	private TextView tvInfo;
 
 	public static final int MSG_ZOOM = 0;
 	public static final int MSG_GET_SHOPINFO_SUCCESS = 1;
-	public static final int MSG_GET_LOCATION_SUCCESS = 2;
+	public static final int MSG_GET_SHOPINFO_FAILED = 2;
+	public static final int MSG_GET_LOCATION_SUCCESS = 3;
 
 	private boolean firstTime = true;
 
 	private GeoPoint searchPosition;;
 	private GeoPoint currentPosition;
 
-	private ArrayList<ShopData> shopList = new ArrayList<ShopData>();
-
 	private LocationClient mLocationClient;
-	
+
 	private PopupOverlay pop;
 
 	private ShopPoiOverlay shopPoiOverlay;
 
-	private boolean zoomStatus = false; // false means already zoom in
+	private float zoomLevel = 0F;
 
 	private Handler uiHandler = new Handler() {
 
@@ -91,11 +78,14 @@ public class MapActivity extends Activity {
 		public void handleMessage(Message msg) {
 			switch (msg.what) {
 			case MSG_ZOOM:
-				zoom();
 				break;
 			case MSG_GET_SHOPINFO_SUCCESS:
-				//TEST
+				// TEST
 				showShop();
+				break;
+			case MSG_GET_SHOPINFO_FAILED:
+				Toast.makeText(MapActivity.this, R.string.get_shop_failed,
+						Toast.LENGTH_SHORT).show();
 				break;
 			case MSG_GET_LOCATION_SUCCESS:
 				BDLocation location = (BDLocation) msg.obj;
@@ -121,30 +111,23 @@ public class MapActivity extends Activity {
 		mMapView.getOverlays().add(myLocationOverlay);
 		mMapView.refresh();
 	}
-	
+
 	protected void showShop() {
-		if(shopPoiOverlay == null)
-			shopPoiOverlay = new ShopPoiOverlay(this, mMapView);
+		mMapView.getOverlays().remove(shopPoiOverlay);
+		shopPoiOverlay = new ShopPoiOverlay(this, mMapView);
 		ArrayList<MKPoiInfo> shopPoiList = new ArrayList<MKPoiInfo>();
-		for (ShopData shopData : shopList) {
-			MKPoiInfo poi = new MKPoiInfo();
-			poi.uid = shopData.getShopID();
-			poi.pt = shopData.getLocation();
-			poi.address = shopData.getShopAddr();
-			poi.name = shopData.getShopName();
-			poi.phoneNum = shopData.getShopTel();
+		Collection<ShopData> shopDataSet = ShopDataModel.getInstance()
+				.getShopDataList();
+		for (ShopData shopData : shopDataSet) {
+			MyPoi poi = new MyPoi(shopData);
 			poi.ePoiType = 0;
 			poi.hasCaterDetails = true;
 			shopPoiList.add(poi);
-			break;
 		}
 		shopPoiOverlay.setData(shopPoiList);
-		mMapView.getOverlays().clear();
-		if(!mMapView.getOverlays().contains(shopPoiOverlay))
-			mMapView.getOverlays().add(shopPoiOverlay);
-		mMapView.refresh();
-		mMapView.getController().animateTo(searchPosition);
 
+		mMapView.getOverlays().add(shopPoiOverlay);
+		mMapView.refresh();
 	}
 
 	protected void setMyPositon(BDLocation location) {
@@ -154,18 +137,17 @@ public class MapActivity extends Activity {
 
 	}
 
-	protected void zoom() {
-		MapController mMapController = mMapView.getController();
-		// mMapController.setZoom(zoomStatus?12:16);
-		mMapController.setZoom(12);
-		zoomStatus = zoomStatus ? false : true;
-	}
-
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		if (savedInstanceState != null) {
+			zoomLevel = savedInstanceState.getFloat(ZOOM_LEVEL);
+		} else {
+			zoomLevel = 12;
+		}
 		Log.d(TAG, "onCreate!");
 		initView();
+		showShop();
 	}
 
 	private void initView() {
@@ -174,15 +156,14 @@ public class MapActivity extends Activity {
 		setContentView(R.layout.activity_map);
 		mMapView = (MapView) findViewById(R.id.bmapView);
 
-		tvInfo = (TextView) findViewById(R.id.tv_info);
-
 		mMapView.setBuiltInZoomControls(true);
 		addMapListener();
 		MapController mMapController = mMapView.getController();
 		GeoPoint point = new GeoPoint((int) (31.84596 * 1E6),
 				(int) (117.262938 * 1E6));
 		mMapController.setCenter(point);
-		mMapController.setZoom(12);
+		mMapController.setZoom(zoomLevel);
+		mMapController.enableClick(true);
 		initLocationClient();
 	}
 
@@ -200,7 +181,6 @@ public class MapActivity extends Activity {
 		option.setPoiDistance(1000); // poi查询距离
 		option.setPoiExtraInfo(true); // 是否需要POI的电话和地址等详细信息
 		mLocationClient.setLocOption(option);
-		mLocationClient.start();
 	}
 
 	private void getMyPosition() {
@@ -219,7 +199,7 @@ public class MapActivity extends Activity {
 				if (pop != null) {
 					pop.hidePop();
 				}
-				checkTapOnShop(point);
+				// checkTapOnShop(point);
 			}
 
 			@Override
@@ -234,24 +214,13 @@ public class MapActivity extends Activity {
 			public void onMapLongClick(GeoPoint point) {
 				Log.i(TAG, "onMapLongClick");
 				searchPosition = point;
+				mMapView.getController().animateTo(point);
 				showBubble(point);
+
 			}
 		};
 		mMapView.regMapTouchListner(mapTouchListener);
 
-	}
-	
-	//Temp solution.
-	protected void checkTapOnShop(GeoPoint point) {
-		for(ShopData shopData:shopList){
-			if((shopData.getLocation().getLatitudeE6() - point.getLatitudeE6() <= 100)&&(shopData.getLocation().getLongitudeE6() - point.getLongitudeE6() <= 100)){
-				Intent intent = new Intent(MapActivity.this, ShopInfoActivity.class);
-				intent.putExtra(SHOP_ID, shopData.getShopID());
-				MapActivity.this.startActivity(intent);
-				break;
-			}
-				
-		}
 	}
 
 	protected void showBubble(GeoPoint point) {
@@ -286,16 +255,25 @@ public class MapActivity extends Activity {
 	protected void searchShop() {
 		double locationX = (double) (searchPosition.getLatitudeE6()) / 1e6;
 		double locationY = (double) (searchPosition.getLongitudeE6()) / 1e6;
-		GetShopCommand cmd = new GetShopCommand(locationX, locationY,
+		GetShopCommand cmd = new GetShopCommand(locationX, locationY, 500F,
 				new CommandSink() {
 
 					@Override
 					public void onCommandExcuted(int result, Command cmd,
 							Object[]... args) {
-						shopList = ((GetShopCommand) cmd).getShopList();
-						Message msg = Message.obtain(uiHandler);
-						msg.what = MSG_GET_SHOPINFO_SUCCESS;
-						msg.sendToTarget();
+						Message msg;
+						switch (result) {
+						case GET_FAILED:
+							msg = Message.obtain(uiHandler);
+							msg.what = MSG_GET_SHOPINFO_FAILED;
+							msg.sendToTarget();
+							break;
+						case GET_SUCCESS:
+							msg = Message.obtain(uiHandler);
+							msg.what = MSG_GET_SHOPINFO_SUCCESS;
+							msg.sendToTarget();
+							break;
+						}
 					}
 				});
 		CommandPool.getInstance().add(cmd);
@@ -307,13 +285,13 @@ public class MapActivity extends Activity {
 		getMenuInflater().inflate(R.menu.map, menu);
 		return true;
 	}
-	
+
 	@Override
-	protected void onStart(){
+	protected void onStart() {
 		Log.d(TAG, "onStart!");
+		mLocationClient.start();
 		super.onStart();
 	}
-
 
 	@Override
 	protected void onResume() {
@@ -324,7 +302,25 @@ public class MapActivity extends Activity {
 		}
 		super.onResume();
 	}
-	
+
+	@Override
+	protected void onRestoreInstanceState(Bundle savedInstanceState) {
+		Log.d(TAG, "onRestoreInstanceState!");
+		if (savedInstanceState != null) {
+			zoomLevel = savedInstanceState.getFloat(ZOOM_LEVEL);
+		} else {
+			zoomLevel = 12;
+		}
+		super.onRestoreInstanceState(savedInstanceState);
+	}
+
+	@Override
+	protected void onSaveInstanceState(Bundle outState) {
+		Log.d(TAG, "onSaveInstanceState!");
+		outState.putFloat(ZOOM_LEVEL, mMapView.getZoomLevel());
+		super.onSaveInstanceState(outState);
+	}
+
 	@Override
 	protected void onPause() {
 		Log.d(TAG, "onPause!");
@@ -334,10 +330,11 @@ public class MapActivity extends Activity {
 		}
 		super.onPause();
 	}
-	
+
 	@Override
-	protected void onStop(){
+	protected void onStop() {
 		Log.d(TAG, "onStop!");
+		mLocationClient.stop();
 		super.onStop();
 	}
 
@@ -351,7 +348,6 @@ public class MapActivity extends Activity {
 		}
 		super.onDestroy();
 	}
-
 
 	class LocationListener implements BDLocationListener {
 		private Handler uiHandler;
@@ -386,15 +382,30 @@ public class MapActivity extends Activity {
 
 		@Override
 		protected boolean onTap(int i) {
-			//TODO: It doesn't work. Need check!
-			Log.i(TAG, "On tap!!!!!!");
-			MKPoiInfo poi = getPoi(i);
+			Log.i(TAG, "On tap on Poi " + i +"!");
+			MyPoi poi = (MyPoi) getPoi(i);
 			Intent intent = new Intent(MapActivity.this, ShopInfoActivity.class);
 			intent.putExtra(SHOP_ID, poi.uid);
 			intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 			MapActivity.this.startActivity(intent);
-			return super.onTap(i);
+			return true;
 		}
+
+	}
+
+	public class MyPoi extends MKPoiInfo {
+		public MyPoi(ShopData shopData) {
+			this.uid = shopData.getShopID();
+			this.pt = shopData.getLocation();
+			this.address = shopData.getShopAddr();
+			this.name = shopData.getShopName();
+			this.phoneNum = shopData.getShopTel();
+			this.intro = shopData.getShopIntro();
+			this.label = shopData.getShopLabel();
+		}
+
+		public String intro;
+		public String label;
 
 	}
 }

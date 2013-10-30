@@ -1,12 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-
     <string name="app_name">GetShop</string>
     <string name="action_settings">Settings</string>
     <string name="info">Information</string>
     <string name="search">Search</string>
     <string name="shop_info">Shop</string>
     <string name="items_label">Items:</string>
-    <string name="name_label">Name:</string>
-
+    <string name="name_label">name:</string>
+    <string name="intro_label">intro:</string>
+    <string name="addr_label">addr:</string>
+    <string name="tel_label">tel:</string>
+    
 </resources>

@@ -9,8 +9,6 @@ public class CommandPool {
 	private ThreadPoolExecutor threadPool;
 	
 	private CommandPool(){
-		threadPool = (ThreadPoolExecutor) Executors.newFixedThreadPool(10);
-		threadPool.setRejectedExecutionHandler(new ThreadPoolExecutor.DiscardOldestPolicy());
 	}
 	
 	public static CommandPool getInstance(){
@@ -19,6 +17,10 @@ public class CommandPool {
 	
 	
 	public synchronized void add(final Command command){
+		if(threadPool == null){
+			threadPool = (ThreadPoolExecutor) Executors.newFixedThreadPool(10);
+			threadPool.setRejectedExecutionHandler(new ThreadPoolExecutor.DiscardOldestPolicy());
+		}
 		Thread t = new Thread(new Runnable() {
 			@Override
 			public void run() {

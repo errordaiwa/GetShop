@@ -1,6 +1,8 @@
 package cn.edu.ustc.shopinfo;
 
 import cn.edu.ustc.R;
+import cn.edu.ustc.data.ShopDataModel;
+import cn.edu.ustc.map.ShopData;
 import static cn.edu.ustc.utils.Consts.*;
 
 import android.annotation.TargetApi;
@@ -21,16 +23,18 @@ import android.view.MenuItem;
 public class ShopInfoActivity extends FragmentActivity {
 	private static final String TAG = ShopInfoActivity.class.getName();
 
-	private String shopID = null;
 
 	private CollectionPagerAdapter mCollectionPagerAdapter;
 
 	private ViewPager mViewPager;
 
+	private ShopData shopData;
+
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		Log.d(TAG, "onCreate!");
-		shopID = getIntent().getStringExtra(SHOP_ID);
+		String shopID = getIntent().getStringExtra(SHOP_ID);
+		shopData = ShopDataModel.getInstance().getShop(shopID);
 		initViews();
 	}
 
@@ -100,9 +104,10 @@ public class ShopInfoActivity extends FragmentActivity {
 		return super.onOptionsItemSelected(item);
 	}
 
-	public String getShopID() {
-		return shopID;
+	public ShopData getShopData() {
+		return shopData;
 	}
+	
 	
 	@Override
 	protected void onStart(){
